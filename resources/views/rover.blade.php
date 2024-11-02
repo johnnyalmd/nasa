@@ -53,7 +53,7 @@
                         <div class="carousel-item {{ $index === 0 ? 'active' : '' }}">
                             <img src="{{ $photo['img_src'] }}" class="d-block w-100" alt="Imagem do Rover em Marte">
                             <div class="carousel-caption d-none d-md-block">
-                                <p>Foto tirada em {{ $photo['earth_date'] }} pela câmera {{ $photo['camera']['full_name'] }}</p>
+                                <p>Foto tirada em {{ $photo['earth_date'] }}</p>
                             </div>
                         </div>
                     @endforeach
@@ -73,12 +73,12 @@
             
 
             <div class="mb-3 mt-3">
-                <label for="basic-url" class="form-label" style="color: white;">Pesquise por um sol dentro dessa janela ({{$sol_atual}}):</label>
+                <label for="basic-url" class="form-label" style="color: white;">Pesquise por um sol dentro dessa janela  ({{ $info_rover->max_sol }}):</label>
                 <form action="{{ route('rover.photos') }}" method="GET">
                     <div class="input-group">
-                        <span class="input-group-text" id="basic-addon3">Sol atual {{$sol_atual}}:</span>
-                        <input type="text" name="sol" class="form-control" id="basic-url" aria-describedby="basic-addon3 basic-addon4">
-                        <button type="submit" class="btn btn-primary">Buscar</button>
+                        <span class="input-group-text" id="basic-addon3">Sol atual ({{ $info_rover->max_sol }}):</span>
+                        <input type="text" name="sol" placeholder="Total de fotos tiradas Marte: {{$info_rover->total_photos}}" class="form-control" id="basic-url" aria-describedby="basic-addon3 basic-addon4">
+                        <button type="submit" class="btn button_search_color"><i class="bi bi-search" style="color: white;"></i></button>
                     </div>
                 </form>
             </div>
@@ -86,5 +86,6 @@
         </div>
 
       </div>
+
 
     </section>

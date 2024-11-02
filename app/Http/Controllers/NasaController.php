@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use App\Models\RoverImage;
+use App\Models\RoverInfo;
 
 class NasaController extends Controller
 {
@@ -18,35 +20,34 @@ class NasaController extends Controller
 
     public function roverPhotos(Request $request)
     {
-        $infoRover = $this->obterInfoRoverCuriosity();
-        $solAtual = $this->obterSolMaisRecente();
-        $errorMessage = null;
-        $infoFotosSol = null;
-
-        if ($request->has('sol')) {
-            $sol = $request->query('sol');
-
-            if (!ctype_digit($sol)) {
-                $errorMessage = "Use como base para pesquisa a quantidade de sois que o rover está em Marte. Apenas números dentro deste valor vão funcionar.";
-            } else {
-                $sol = (int) $sol;
-                if ($sol > (int) $infoRover['rover']['max_sol']) {
-                    $errorMessage = "O valor inserido é maior do que a quantidade máxima de sois disponíveis.";
-                }
+        $sol = $request->input('sol', 2000);
+        $infoFotosSol = RoverImage::where('sol', $sol)->get();
+        $infoRover = RoverInfo::first();
+        if ($infoFotosSol->isEmpty()) {
+            $infoFotosSol = $this->obterFotosRoverSol($sol);
+            foreach ($infoFotosSol as $photo) {
+                RoverImage::create([
+                    'sol' => $sol,
+                    'img_src' => $photo['img_src'],
+                    'camera_name' => $photo['camera']['full_name'],
+                    'earth_date' => $photo['earth_date'],
+                ]);
+                RoverInfo::updateOrCreate(
+                    [
+                        'rover_name' => $photo['rover']['name'],
+                        'max_sol' => $photo['rover']['max_sol'],
+                        'max_date' => $photo['rover']['max_date'],
+                        'status' => $photo['rover']['status'],
+                        'total_photos' => $photo['rover']['total_photos'],
+                    ]
+                );
             }
-
-            if (!$errorMessage) {
-                $infoFotosSol = $this->obterFotosRoverSol($sol);
-            }
-        } else {
-            $infoFotosSol = $this->obterFotosRoverSol(2000);
+            $infoFotosSol = collect($infoFotosSol);
         }
 
         return view('rover', [
-            'error_message' => $errorMessage,
             'info_fotos_sol' => $infoFotosSol,
-            'sol_atual' => $solAtual,
-            'info_rover' => $infoRover,
+            'info_rover' => $infoRover
         ]);
     }
 
@@ -72,10 +73,10 @@ class NasaController extends Controller
         ]);
     }
 
-    public function apod()
+    public function imageOfTheDay()
     {
         $urlImagemDoDia = $this->obterImagemDoDia();
-        return view('apod', [
+        return view('image_of_the_day', [
             'url_imagem_do_dia' => $urlImagemDoDia,
         ]);
     }
